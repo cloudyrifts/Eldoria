@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Eldoria — A Minecraft RPG Adventure</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --purple:       #9b6dcc;
+      --purple-light: #c8a0f0;
+      --purple-dim:   #5a3a80;
+      --deep:         #07050f;
+      --mid:          #170f2a;
+      --parchment:    #d4c8ea;
+      --glow:         0 0 40px rgba(155,109,204,0.25), 0 0 80px rgba(155,109,204,0.1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--deep);
+      color: var(--parchment);
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      pointer-events: none; z-index: 1; opacity: 0.4;
+    }
+
+    section, nav, footer { position: relative; z-index: 2; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 4rem;
+      background: linear-gradient(to bottom, rgba(7,5,15,0.95), transparent);
+      backdrop-filter: blur(2px);
+    }
+    .nav-logo {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.3rem; color: var(--purple-light);
+      text-decoration: none; text-shadow: 0 0 18px rgba(155,109,204,0.5);
+    }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-family: 'Cinzel', serif; font-size: 0.78rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--parchment); text-decoration: none;
+      opacity: 0.75; transition: opacity 0.2s, color 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; color: var(--purple-light); }
+
+    /* HERO */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 8rem 2rem 5rem;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 80%, rgba(122,61,181,0.14) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 50% 50%, rgba(155,109,204,0.08) 0%, transparent 65%),
+        linear-gradient(180deg, #07050f 0%, #100820 60%, #0d0618 100%);
+    }
+    .hero-rune {
+      font-size: 3.5rem; margin-bottom: 1.5rem;
+      opacity: 0; animation: fadeUp 1s 0.3s forwards;
+      filter: drop-shadow(0 0 20px rgba(155,109,204,0.8));
+    }
+    .hero-eyebrow {
+      font-family: 'Cinzel', serif; font-size: 0.72rem;
+      letter-spacing: 0.45em; text-transform: uppercase;
+      color: var(--purple-light); opacity: 0;
+      animation: fadeUp 0.9s 0.5s forwards; margin-bottom: 1.2rem;
+    }
+    h1 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(3.5rem, 10vw, 8rem); font-weight: 900; line-height: 0.95;
+      background: linear-gradient(170deg, var(--purple-light) 0%, var(--purple) 40%, #5a2e9a 80%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 30px rgba(155,109,204,0.35));
+      opacity: 0; animation: fadeUp 1s 0.7s forwards; margin-bottom: 1rem;
+    }
+    .hero-sub {
+      font-family: 'Crimson Pro', serif; font-style: italic;
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem); color: var(--parchment);
+      opacity: 0; animation: fadeUp 1s 1s forwards;
+      max-width: 560px; margin: 0 auto 2.8rem;
+    }
+    .hero-divider {
+      width: 240px; height: 1px;
+      background: linear-gradient(to right, transparent, var(--purple), transparent);
+      margin: 0 auto 2.8rem; opacity: 0;
+      animation: fadeIn 1.2s 1.2s forwards;
+    }
+    .btn-join {
+      display: inline-block; font-family: 'Cinzel', serif;
+      font-size: 0.82rem; letter-spacing: 0.25em; text-transform: uppercase;
+      color: #fff;
+      background: linear-gradient(135deg, var(--purple-light), var(--purple));
+      padding: 1rem 3rem; border: none; cursor: pointer; text-decoration: none;
+      clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+      opacity: 0; animation: fadeUp 1s 1.4s forwards;
+      transition: filter 0.25s, transform 0.25s;
+      box-shadow: 0 4px 30px rgba(155,109,204,0.35);
+    }
+    .btn-join:hover { filter: brightness(1.15); transform: translateY(-2px); }
+    .scroll-hint {
+      position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+      opacity: 0; animation: fadeIn 1s 2.2s forwards;
+    }
+    .scroll-hint span {
+      font-family: 'Cinzel', serif; font-size: 0.6rem;
+      letter-spacing: 0.3em; color: var(--purple-dim); text-transform: uppercase;
+    }
+    .scroll-hint .arrow {
+      width: 1px; height: 28px;
+      background: linear-gradient(to bottom, var(--purple-dim), transparent);
+      animation: scrollPulse 1.8s ease-in-out infinite;
+    }
+
+    /* SHARED */
+    .section-wrap { max-width: 1100px; margin: 0 auto; padding: 6rem 2.5rem; }
+    .section-label {
+      font-family: 'Cinzel', serif; font-size: 0.68rem;
+      letter-spacing: 0.45em; text-transform: uppercase;
+      color: var(--purple-light); display: block; margin-bottom: 0.6rem; opacity: 0.8;
+    }
+    .section-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.8rem, 4vw, 3rem); color: var(--purple-light);
+      line-height: 1.15; margin-bottom: 1rem; text-shadow: var(--glow);
+    }
+    .ornament { display: flex; align-items: center; gap: 1rem; margin-bottom: 3rem; }
+    .ornament-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--purple-dim)); }
+    .ornament-line.right { background: linear-gradient(to left, transparent, var(--purple-dim)); }
+    .ornament-gem {
+      width: 8px; height: 8px; background: var(--purple);
+      transform: rotate(45deg); box-shadow: 0 0 12px rgba(155,109,204,0.7);
+    }
+
+    /* INFO */
+    #info { background: linear-gradient(180deg, #07050f, #0f0a1e 50%, #07050f); }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3.5rem; }
+    .info-card {
+      background: linear-gradient(135deg, rgba(155,109,204,0.06), rgba(155,109,204,0.02));
+      border: 1px solid rgba(155,109,204,0.15); padding: 2rem 2.2rem;
+      position: relative; transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .info-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+      background: linear-gradient(to bottom, var(--purple), transparent); opacity: 0.5;
+    }
+    .info-card:hover { border-color: rgba(155,109,204,0.4); box-shadow: 0 0 30px rgba(155,109,204,0.08); }
+    .info-card-icon { font-size: 2rem; margin-bottom: 0.8rem; }
+    .info-card h3 {
+      font-family: 'Cinzel', serif; font-size: 0.85rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--purple-light); margin-bottom: 0.6rem;
+    }
+    .info-card p { font-size: 0.95rem; color: #a890c8; line-height: 1.6; }
+
+    .rules-title {
+      font-family: 'Cinzel', serif; font-size: 0.85rem;
+      letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--purple-light); margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .rules-title::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(to right, var(--purple-dim), transparent);
+    }
+    .rules-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem 2.5rem; }
+    .rules-list li {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      font-size: 0.95rem; color: #a890c8; padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(155,109,204,0.08);
+    }
+    .rules-list li::before { content: '✦'; color: var(--purple); font-size: 0.6rem; margin-top: 0.4rem; flex-shrink: 0; }
+
+    /* JOIN */
+    #join {
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 0%, rgba(122,61,181,0.09) 0%, transparent 70%),
+        linear-gradient(180deg, #07050f, #0d0820);
+    }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1rem; }
+    .step {
+      position: relative; padding: 2.5rem 2rem;
+      background: rgba(155,109,204,0.03); border: 1px solid rgba(155,109,204,0.12);
+      text-align: center; transition: transform 0.3s, border-color 0.3s; overflow: hidden;
+    }
+    .step::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(to right, transparent, var(--purple), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .step:hover { transform: translateY(-4px); border-color: rgba(155,109,204,0.3); }
+    .step:hover::after { opacity: 1; }
+    .step-num {
+      font-family: 'Cinzel Decorative', serif; font-size: 3.5rem; font-weight: 900;
+      background: linear-gradient(180deg, rgba(155,109,204,0.2), rgba(155,109,204,0.03));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1; margin-bottom: 0.8rem; display: block;
+    }
+    .step h3 {
+      font-family: 'Cinzel', serif; font-size: 0.82rem;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--purple-light); margin-bottom: 0.8rem;
+    }
+    .step p { font-size: 0.95rem; color: #a890c8; line-height: 1.5; }
+
+    .ip-box {
+      margin-top: 3.5rem; text-align: center; padding: 2.5rem;
+      border: 1px solid rgba(155,109,204,0.22); background: rgba(155,109,204,0.03);
+    }
+    .ip-label {
+      font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.4em;
+      text-transform: uppercase; color: var(--purple-dim); margin-bottom: 0.8rem; display: block;
+    }
+    .ip-address {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.2rem, 3vw, 2rem); color: var(--purple-light);
+      text-shadow: 0 0 30px rgba(155,109,204,0.5);
+      cursor: pointer; transition: filter 0.2s; display: inline-block;
+    }
+    .ip-address:hover { filter: brightness(1.2); }
+    .copy-hint {
+      font-family: 'Cinzel', serif; font-size: 0.62rem;
+      letter-spacing: 0.25em; color: var(--purple-dim);
+      margin-top: 0.5rem; display: block; opacity: 0.7;
+    }
+
+    /* STAFF */
+    #staff { background: linear-gradient(180deg, #07050f, #0b071a 50%, #07050f); }
+    .staff-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+    .staff-card {
+      background: linear-gradient(160deg, rgba(155,109,204,0.07), rgba(155,109,204,0.02));
+      border: 1px solid rgba(155,109,204,0.13); padding: 2rem 1.5rem;
+      text-align: center; transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .staff-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 40px rgba(155,109,204,0.12);
+      border-color: rgba(155,109,204,0.3);
+    }
+    .staff-avatar {
+      width: 80px; height: 80px; margin: 0 auto 1.2rem;
+      background: linear-gradient(135deg, var(--mid), rgba(155,109,204,0.12));
+      border: 2px solid rgba(155,109,204,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem; position: relative;
+    }
+    .staff-avatar::before { content: ''; position: absolute; inset: 3px; border: 1px solid rgba(155,109,204,0.1); }
+    .staff-name { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--purple-light); margin-bottom: 0.3rem; }
+    .staff-role { font-family: 'Cinzel', serif; font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--purple); margin-bottom: 0.8rem; }
+    .staff-bio { font-size: 0.88rem; color: #8878aa; font-style: italic; line-height: 1.5; }
+
+    /* FOOTER */
+    footer { background: var(--deep); border-top: 1px solid rgba(155,109,204,0.1); padding: 3rem 2.5rem; text-align: center; }
+    .footer-logo { font-family: 'Cinzel Decorative', serif; font-size: 1.5rem; color: var(--purple-light); text-shadow: 0 0 20px rgba(155,109,204,0.4); margin-bottom: 0.7rem; display: block; }
+    .footer-sub { font-size: 0.85rem; color: var(--purple-dim); font-style: italic; margin-bottom: 1.8rem; }
+    .footer-links { display: flex; justify-content: center; gap: 2rem; list-style: none; margin-bottom: 2rem; }
+    .footer-links a { font-family: 'Cinzel', serif; font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--purple-dim); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--purple-light); }
+    .footer-copy { font-size: 0.78rem; color: rgba(155,109,204,0.25); font-family: 'Cinzel', serif; letter-spacing: 0.1em; }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scrollPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .info-grid, .rules-list, .steps { grid-template-columns: 1fr; }
+      .section-wrap { padding: 4rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<!-- NAV -->
+<nav>
+  <a href="#hero" class="nav-logo">Eldoria</a>
+  <ul class="nav-links">
+    <li><a href="#info">The Realm</a></li>
+    <li><a href="#join">Begin Journey</a></li>
+    <li><a href="#staff">Council</a></li>
+    <li><a href="https://discord.gg/dwyBMHaPgJ" target="_blank">Discord</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-rune">⚔</div>
+  <p class="hero-eyebrow">A Minecraft RPG Experience</p>
+  <h1>Eldoria</h1>
+  <p class="hero-sub">Where ancient darkness stirs, forgotten kingdoms rise, and every adventurer carves their legend.</p>
+  <div class="hero-divider"></div>
+  <a href="#join" class="btn-join">Enter the Realm</a>
+  <div class="scroll-hint">
+    <div class="arrow"></div>
+  </div>
+</section>
+
+<!-- SERVER INFO & RULES -->
+<section id="info">
+  <div class="section-wrap">
+    <div class="reveal">
+      <span class="section-label">✦ &nbsp; The Realm</span>
+      <h2 class="section-title">Server Information</h2>
+      <div class="ornament">
+        <div class="ornament-line"></div>
+        <div class="ornament-gem"></div>
+        <div class="ornament-line right"></div>
+      </div>
+    </div>
+
+    <div class="info-grid reveal">
+      <div class="info-card">
+        <div class="info-card-icon">🗺️</div>
+        <h3>Open World</h3>
+        <p>A vast survival world filled with custom biomes, hidden dungeons, and ancient ruins waiting to be uncovered by brave adventurers.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">⚔️</div>
+        <h3>EliteMobs</h3>
+        <p>Powered by EliteMobs — face off against powerful Elite monsters with unique abilities. Hunt them down for rare loot and legendary gear.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">🏰</div>
+        <h3>Factions & Guilds</h3>
+        <p>Form or join a guild, claim territory, build fortresses, and forge alliances — or wage war across the realm's ever-shifting power struggles.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">💎</div>
+        <h3>Elite Loot</h3>
+        <p>Elite monsters drop unique weapons, armour, and treasures you won't find anywhere else. Every hunt could change your fate.</p>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <div class="rules-title">Laws of the Realm</div>
+      <ul class="rules-list">
+        <li>Respect all players — harassment is not tolerated</li>
+        <li>No hacking, cheating, or exploit abuse</li>
+        <li>No griefing outside designated PvP zones</li>
+        <li>Keep chat clean — no slurs or hate speech</li>
+        <li>Respect staff decisions — appeals go through Discord</li>
+        <li>No advertising other servers</li>
+        <li>Do not exploit bugs — report them instead</li>
+        <li>Trade fairly — scamming carries harsh penalties</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO JOIN -->
+<section id="join">
+  <div class="section-wrap">
+    <div class="reveal">
+      <span class="section-label">✦ &nbsp; Begin Your Journey</span>
+      <h2 class="section-title">How to Join</h2>
+      <div class="ornament">
+        <div class="ornament-line"></div>
+        <div class="ornament-gem"></div>
+        <div class="ornament-line right"></div>
+      </div>
+    </div>
+
+    <div class="steps reveal">
+      <div class="step">
+        <span class="step-num">I</span>
+        <h3>Get Minecraft</h3>
+        <p>Make sure you have Minecraft: Java Edition installed and updated to the latest version. An official account is required.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">II</span>
+        <h3>Copy the IP</h3>
+        <p>Open Minecraft, go to Multiplayer, then click "Add Server." Paste the Eldoria server address shown below.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">III</span>
+        <h3>Enter the Realm</h3>
+        <p>Connect, explore the world, and test your strength against Elite monsters. Your legend begins the moment you arrive.</p>
+      </div>
+    </div>
+
+    <div class="ip-box reveal">
+      <span class="ip-label">Server Address</span>
+      <span class="ip-address" id="ipAddr" onclick="copyIP()" title="Click to copy">eldoria.joinmc.world</span>
+      <span class="copy-hint" id="copyHint">✦ Click to copy ✦</span>
+    </div>
+  </div>
+</section>
+
+<!-- STAFF -->
+<section id="staff">
+  <div class="section-wrap">
+    <div class="reveal">
+      <span class="section-label">✦ &nbsp; Those Who Guide</span>
+      <h2 class="section-title">The Elder Council</h2>
+      <div class="ornament">
+        <div class="ornament-line"></div>
+        <div class="ornament-gem"></div>
+        <div class="ornament-line right"></div>
+      </div>
+    </div>
+
+    <div class="staff-grid reveal">
+      <div class="staff-card">
+        <div class="staff-avatar">👑</div>
+        <div class="staff-name">LightningDew</div>
+        <div class="staff-role">Owner &amp; Developer</div>
+        <p class="staff-bio">The mind behind Eldoria — builder, plugin-maker, and keeper of the realm.</p>
+      </div>
+      <div class="staff-card">
+        <div class="staff-avatar">🛡️</div>
+        <div class="staff-name">Agent_monty</div>
+        <div class="staff-role">Administrator</div>
+        <p class="staff-bio">Keeping the peace and making sure every adventurer has a fair shot.</p>
+      </div>
+      <div class="staff-card">
+        <div class="staff-avatar">📣</div>
+        <div class="staff-name">AwakenLIMITS</div>
+        <div class="staff-role">Marketing Director</div>
+        <p class="staff-bio">Spreading the word of Eldoria across the land — one post at a time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo">Eldoria</span>
+  <p class="footer-sub">"Your legend begins the moment you step through the gate."</p>
+  <ul class="footer-links">
+    <li><a href="#info">The Realm</a></li>
+    <li><a href="#join">Join</a></li>
+    <li><a href="#staff">Council</a></li>
+    <li><a href="https://discord.gg/dwyBMHaPgJ" target="_blank">Discord</a></li>
+  </ul>
+  <p class="footer-copy">© 2026 Eldoria — Not affiliated with Mojang Studios</p>
+</footer>
+
+<script>
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [];
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  function initStars() {
+    stars = Array.from({ length: 200 }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.2 + 0.2, a: Math.random(),
+      speed: Math.random() * 0.004 + 0.001, phase: Math.random() * Math.PI * 2
+    }));
+  }
+  function drawStars(t) {
+    ctx.clearRect(0, 0, W, H);
+    stars.forEach(s => {
+      const alpha = s.a * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase));
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(155,109,204,${alpha})`; ctx.fill();
+    });
+    requestAnimationFrame(drawStars);
+  }
+  resize(); initStars(); requestAnimationFrame(drawStars);
+  window.addEventListener('resize', () => { resize(); initStars(); });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  function copyIP() {
+    navigator.clipboard.writeText('eldoria.joinmc.world').then(() => {
+      const hint = document.getElementById('copyHint');
+      const addr = document.getElementById('ipAddr');
+      hint.textContent = '✦ Copied! ✦';
+      addr.style.filter = 'brightness(1.4)';
+      setTimeout(() => { hint.textContent = '✦ Click to copy ✦'; addr.style.filter = ''; }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
